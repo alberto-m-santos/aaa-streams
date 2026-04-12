@@ -1,0 +1,134 @@
+name: stremio-stack
+
+networks:
+  stremio-net:
+    driver: bridge
+
+services:
+  zilean-db:
+    image: postgres:16-alpine
+    container_name: zilean-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: zilean
+      POSTGRES_USER: zilean
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command: >
+      postgres
+      -c shared_buffers=512MB
+      -c work_mem=32MB
+      -c effective_cache_size=2GB
+      -c maintenance_work_mem=256MB
+      -c max_connections=100
+      -c random_page_cost=1.1
+      -c synchronous_commit=off
+      -c wal_compression=on
+    volumes:
+      - ./data/zilean-db:/var/lib/postgresql/data
+      - ./init/zilean-init.sql:/docker-entrypoint-initdb.d/10-zilean-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zilean -d zilean"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - stremio-net
+
+  zilean:
+    image: ipromknight/zilean:latest
+    container_name: zilean
+    restart: unless-stopped
+    depends_on:
+      zilean-db:
+        condition: service_healthy
+    ports:
+      - "8181:8181"
+    environment:
+      Zilean__Database__ConnectionString: "Host=zilean-db;Port=5432;Database=zilean;Username=zilean;Password=${POSTGRES_PASSWORD};Include Error Detail=true;Timeout=30;CommandTimeout=3600"
+      Zilean__Dmm__ImportBatched: "true"
+      Zilean__Dmm__MaxFilteredResults: "200"
+      Zilean__Dmm__MinimumScore: "0.85"
+      Zilean__Imdb__EnableImportMatching: "true"
+    volumes:
+      - ./data/zilean:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8181/healthchecks/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - stremio-net
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Etc/UTC
+    ports:
+      - "9696:9696"
+    volumes:
+      - ./data/prowlarr:/config
+    networks:
+      - stremio-net
+
+  comet:
+    image: g0ldyy/comet:latest
+    container_name: comet
+    restart: unless-stopped
+    depends_on:
+      zilean:
+        condition: service_started
+      prowlarr:
+        condition: service_started
+    environment:
+      FASTAPI_HOST: "0.0.0.0"
+      FASTAPI_PORT: "8000"
+      FASTAPI_WORKERS: "4"
+      DASHBOARD_ADMIN_PASSWORD: ${COMET_ADMIN_PASSWORD}
+
+      DATABASE_TYPE: "sqlite"
+      DATABASE_PATH: "/data/comet.db"
+
+      CACHE_TTL: "86400"
+      DEBRID_PROXY_URL: ""
+
+      INDEXER_MANAGER_TYPE: "prowlarr"
+      INDEXER_MANAGER_URL: "http://prowlarr:9696"
+      INDEXER_MANAGER_API_KEY: ${PROWLARR_API_KEY}
+      INDEXER_MANAGER_TIMEOUT: "2"
+      INDEXER_MANAGER_INDEXERS: '["1337x","therarbg","thepiratebay","eztv","torrentgalaxy","yts"]'
+
+      ZILEAN_URL: "http://zilean:8181"
+      ZILEAN_TAKE_FIRST: "500"
+
+      SCRAPE_TORRENTIO: "False"
+      SCRAPE_MEDIAFUSION: "False"
+
+      REMOVE_ADULT_CONTENT: "True"
+      CUSTOM_HEADER_HTML: "None"
+
+      PROXY_DEBRID_STREAM: "True"
+      PROXY_DEBRID_STREAM_PASSWORD: ${COMET_ADMIN_PASSWORD}
+
+      CUSTOM_FILTER_RESOLUTIONS: '["480p","360p","240p","144p","Unknown"]'
+      CUSTOM_FILTER_TITLE_EXCLUDE: '(?i)\\b(cam|hdcam|ts|telesync|hdts|hdtc|tc)\\b'
+    volumes:
+      - ./data/comet:/data
+    networks:
+      - stremio-net
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - comet
+    networks:
+      - stremio-net
