@@ -88,6 +88,9 @@ services:
       FASTAPI_HOST: "0.0.0.0"
       FASTAPI_PORT: "8000"
       FASTAPI_WORKERS: "1"
+
+      ADDON_ID: "stremio.aaastreams.fast"
+      ADDON_NAME: "AAA Streams"
       ADMIN_DASHBOARD_PASSWORD: ${COMET_ADMIN_PASSWORD}
       CONFIGURE_PAGE_PASSWORD: ${COMET_ADMIN_PASSWORD}
 
