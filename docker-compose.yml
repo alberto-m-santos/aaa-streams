@@ -88,7 +88,8 @@ services:
       FASTAPI_HOST: "0.0.0.0"
       FASTAPI_PORT: "8000"
       FASTAPI_WORKERS: "1"
-      DASHBOARD_ADMIN_PASSWORD: ${COMET_ADMIN_PASSWORD}
+      ADMIN_DASHBOARD_PASSWORD: ${COMET_ADMIN_PASSWORD}
+      CONFIGURE_PAGE_PASSWORD: ${COMET_ADMIN_PASSWORD}
 
       DATABASE_TYPE: "sqlite"
       DATABASE_PATH: "/data/comet.db"
@@ -102,6 +103,7 @@ services:
       INDEXER_MANAGER_TIMEOUT: "2"
       INDEXER_MANAGER_INDEXERS: '["knaben","thepiratebay","yts"]'
 
+      SCRAPE_ZILEAN: "True"
       ZILEAN_URL: "http://zilean:8181"
       ZILEAN_TAKE_FIRST: "500"
 
