@@ -115,6 +115,7 @@ services:
 
       PROXY_DEBRID_STREAM: "True"
       PROXY_DEBRID_STREAM_PASSWORD: ${COMET_ADMIN_PASSWORD}
+      DISABLE_TORRENT_STREAMS: "True"
 
       CUSTOM_FILTER_RESOLUTIONS: '["480p","360p","240p","144p","Unknown"]'
       CUSTOM_FILTER_TITLE_EXCLUDE: '(?i)\\b(cam|hdcam|ts|telesync|hdts|hdtc|tc)\\b'
