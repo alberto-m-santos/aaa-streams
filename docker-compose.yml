@@ -100,7 +100,7 @@ services:
       INDEXER_MANAGER_URL: "http://prowlarr:9696"
       INDEXER_MANAGER_API_KEY: ${PROWLARR_API_KEY}
       INDEXER_MANAGER_TIMEOUT: "2"
-      INDEXER_MANAGER_INDEXERS: '["1337x","therarbg","thepiratebay","eztv","torrentgalaxy","yts"]'
+      INDEXER_MANAGER_INDEXERS: '["knaben","thepiratebay","yts"]'
 
       ZILEAN_URL: "http://zilean:8181"
       ZILEAN_TAKE_FIRST: "500"
