@@ -111,6 +111,7 @@ services:
       INDEXER_MANAGER_TIMEOUT: "2"
       INDEXER_MANAGER_INDEXERS: '["knaben","thepiratebay","yts"]'
 
+      SCRAPE_PROWLARR: "background"
       SCRAPE_ZILEAN: "True"
       ZILEAN_URL: "http://zilean:8181"
       ZILEAN_TAKE_FIRST: "500"
