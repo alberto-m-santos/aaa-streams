@@ -75,6 +75,13 @@ services:
     networks:
       - stremio-net
 
+  stremthru:
+    image: muniftanjim/stremthru:latest
+    container_name: stremthru
+    restart: unless-stopped
+    networks:
+      - stremio-net
+
   comet:
     image: g0ldyy/comet:latest
     container_name: comet
@@ -83,6 +90,8 @@ services:
       zilean:
         condition: service_started
       prowlarr:
+        condition: service_started
+      stremthru:
         condition: service_started
     ports:
       - "8000:8000"
@@ -118,6 +127,8 @@ services:
 
       SCRAPE_TORRENTIO: "False"
       SCRAPE_MEDIAFUSION: "False"
+
+      STREMTHRU_URL: "http://stremthru:8080"
 
       REMOVE_ADULT_CONTENT: "True"
       CUSTOM_HEADER_HTML: "None"
