@@ -9,6 +9,7 @@ services:
     image: postgres:16-alpine
     container_name: zilean-db
     restart: unless-stopped
+    shm_size: 1gb
     environment:
       POSTGRES_DB: zilean
       POSTGRES_USER: zilean
@@ -48,7 +49,10 @@ services:
       Zilean__Dmm__ImportBatched: "true"
       Zilean__Dmm__MaxFilteredResults: "200"
       Zilean__Dmm__MinimumScore: "0.85"
+      Zilean__Dmm__ScrapeSchedule: "17 * * * *"
       Zilean__Imdb__EnableImportMatching: "true"
+      Zilean__Imdb__UseAllCores: "true"
+      Zilean__Imdb__UseLucene: "true"
     volumes:
       - ./data/zilean:/app/data
     healthcheck:
